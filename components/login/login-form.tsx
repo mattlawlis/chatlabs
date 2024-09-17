@@ -148,7 +148,7 @@ export default function LoginForm({
           value={email}
           onChange={e => setEmail(e.target.value)}
           className="rounded-lg"
-          placeholder={"Enter your company email"}
+          placeholder={"Enter your email"}
         />
         <Button
           disabled={disabled}
