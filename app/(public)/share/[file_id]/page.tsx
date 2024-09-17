@@ -21,7 +21,7 @@ export async function generateMetadata({
   const file = await getFileByHashId(file_id)
 
   return {
-    title: `${file?.name} - Created with ChatLabs`,
+    title: `${file?.name} - Created with The TX Law Advisor`,
     description: file?.description
   }
 }
