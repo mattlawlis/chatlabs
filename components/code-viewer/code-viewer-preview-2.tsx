@@ -52,19 +52,25 @@ const CodeViewerPreview2: React.FC<PreviewProps2> = ({
     const iframe = iframeRef.current
     if (!iframe) return
 
-    const doc = iframe.contentDocument || iframe.contentWindow?.document
     const iframeWindow = iframe.contentWindow
-    if (!doc) return
     if (!iframeWindow) return
     if (renderRef.current === fullHtmlContent) return
 
-    doc.open()
-    doc.write(fullHtmlContent)
-    doc.close()
-
     renderRef.current = fullHtmlContent
 
-    updateHtml(doc)
+    const dom = new DOMParser().parseFromString(fullHtmlContent, "text/html")
+
+    const styleElement = dom.createElement("style")
+    styleElement.textContent = `
+            .highlighted {
+              outline: dashed 1px blue;
+            }
+          `
+    dom.head.appendChild(styleElement)
+
+    updateHtml(dom)
+
+    iframe.srcdoc = dom.documentElement.outerHTML
 
     const captureConsole = (methodName: keyof Console, messageType: string) => {
       const originalMethod = iframeWindow.console[methodName]
@@ -97,14 +103,6 @@ const CodeViewerPreview2: React.FC<PreviewProps2> = ({
         `[ERROR] ${message} at ${source}:${lineno}:${colno}`
       ])
     }
-
-    const styleElement = doc.createElement("style")
-    styleElement.textContent = `
-            .highlighted {
-              outline: dashed 1px blue;
-            }
-          `
-    doc.head.appendChild(styleElement)
 
     return () => {
       // Reset console methods to original
@@ -201,11 +199,7 @@ const CodeViewerPreview2: React.FC<PreviewProps2> = ({
 
   return (
     <div className="flex h-full min-h-[400px] flex-col">
-      <iframe
-        ref={iframeRef}
-        title="Full HTML Renderer"
-        className="flex-1 bg-white"
-      />
+      <iframe ref={iframeRef} className="flex-1 bg-white" />
       <div
         className={`bg-accent text-foreground overflow-auto border-t font-mono text-xs transition-all duration-300 ${
           isConsoleExpanded ? "h-48 p-4" : "h-0 p-0"

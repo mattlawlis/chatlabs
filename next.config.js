@@ -2,9 +2,21 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
   enabled: process.env.ANALYZE === "true"
 })
 
+const nrExternals = require('newrelic/load-externals')
+
 const withPWA = require("next-pwa")({
   dest: "public"
 })
+
+const newrelicConfig = {
+  experimental: {
+    serverComponentsExternalPackages: ["sharp", "onnxruntime-node", "newrelic"]
+  },
+  webpack: (config) => {
+    nrExternals(config)
+    return config
+  }
+};
 
 const nextConfig = {
   reactStrictMode: true,
@@ -25,11 +37,9 @@ const nextConfig = {
       }
     ]
   },
-  experimental: {
-    serverComponentsExternalPackages: ["sharp", "onnxruntime-node"]
-  }
 }
 
-module.exports = withBundleAnalyzer(
-  process.env.NODE_ENV === "production" ? withPWA(nextConfig) : nextConfig
-)
+module.exports = {
+  ...(withBundleAnalyzer(process.env.NODE_ENV === "production" ? withPWA(nextConfig) : nextConfig)),
+  ...newrelicConfig
+};
